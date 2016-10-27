@@ -295,6 +295,18 @@ namespace ReactNative.Views.TextInput
         {
             view.MaxLength = maxCharLength;
         }
+        
+        
+        /// <summary>
+        /// Sets the min width property on the <see cref="ReactTextBox"/>.
+        /// </summary>
+        /// <param name="view">The view instance.</param>
+        /// <param name="minWidth">The min width.</param>
+        [ReactProp("minWidth")]
+        public void SetMinWidth(ReactTextBox view, float minWidth)
+        {
+            view.MinWidth = minWidth;
+        }
 
         /// <summary>
         /// Sets whether to enable autocorrect on the <see cref="ReactTextBox"/>.
