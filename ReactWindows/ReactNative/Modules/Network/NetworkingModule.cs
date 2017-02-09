@@ -425,6 +425,22 @@ namespace ReactNative.Modules.Network
                     case "content-length":
                     case "content-type":
                         break;
+                    case "authorization":
+                        var incomingHeader = header[1];
+                        var seperator = new Char[] { ' ' };
+                        var typeAndToken = incomingHeader.Split(seperator);
+                        Windows.Web.Http.Headers.HttpCredentialsHeaderValue auth;
+                        if (Windows.Web.Http.Headers.HttpCredentialsHeaderValue.TryParse(incomingHeader, out auth))
+                        {
+                            request.Headers.Authorization = auth;
+                        } else if (typeAndToken[0] == "Bearer") {
+                            auth = new Windows.Web.Http.Headers.HttpCredentialsHeaderValue(typeAndToken[0], typeAndToken[1]);
+                        }
+                        if (auth != null)
+                        {
+                            request.Headers.Authorization = auth;
+                        }
+                        break;
                     default:
                         request.Headers[key] = header[1];
                         break;
