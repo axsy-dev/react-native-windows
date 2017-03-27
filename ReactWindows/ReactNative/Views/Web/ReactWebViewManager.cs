@@ -204,6 +204,7 @@ namespace ReactNative.Views.Web
             view.NavigationStarting -= OnNavigationStarting;
         }
 
+
         /// <summary>
         /// Creates a new view instance of type <see cref="WebView"/>.
         /// </summary>
@@ -225,6 +226,24 @@ namespace ReactNative.Views.Web
             base.AddEventEmitters(reactContext, view);
             view.NavigationCompleted += OnNavigationCompleted;
             view.NavigationStarting += OnNavigationStarting;
+            view.UnsupportedUriSchemeIdentified += OnUnsupportedUriSchemeIdentified;
+        }
+
+        private void OnUnsupportedUriSchemeIdentified(object sender, WebViewUnsupportedUriSchemeIdentifiedEventArgs e)
+        {
+            var webView = (WebView)sender;
+            webView.GetReactContext().GetNativeModule<UIManagerModule>()
+                .EventDispatcher
+                .DispatchEvent(
+                    new WebViewLoadingEvent(
+                        webView.GetTag(),
+                        "Start",
+                        e.Uri.ToString(),
+                        true,
+                        webView.DocumentTitle,
+                        webView.CanGoBack,
+                        webView.CanGoForward));
+            e.Handled = true;
         }
 
         private async void OnNavigationCompleted(object sender, WebViewNavigationCompletedEventArgs e)
