@@ -27,7 +27,7 @@ namespace ReactNative.Modules.Network
         public async Task<HttpResponseMessage> SendRequestAsync(HttpRequestMessage request, CancellationToken token)
         {
 #if WINDOWS_UWP
-            var asyncInfo = _client.SendRequestAsync(request);
+            var asyncInfo = _client.SendRequestAsync(request, HttpCompletionOption.ResponseHeadersRead);
             using (token.Register(asyncInfo.Cancel))
             {
                 try
