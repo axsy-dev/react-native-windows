@@ -9,6 +9,7 @@ using System.IO;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using System.Runtime.InteropServices.WindowsRuntime;
 using Windows.Storage;
 using Windows.Web.Http;
 using Windows.Web.Http.Filters;
@@ -159,6 +160,30 @@ namespace ReactNative.Modules.Network
                         if (stringContent != null)
                         {
                             formDataContent.Add(new HttpStringContent(stringContent), fieldName);
+                        }
+                        else
+                        {
+                            // Assuming that the value is FileUpload Object
+                            // {uri: "fileUri", name: "fileName", type: "fileType"}
+
+                            var fileUri = content.Value<string>("uri");
+                            var fileName = content.Value<string>("name");
+                            var fileType = content.Value<string>("type");
+
+                            if (fileUri != null && fileName != null)
+                            {
+                                FileStream fs = File.OpenRead(fileUri);
+                                byte[] fileByteArrayString = new byte[fs.Length];
+                                fs.Read(fileByteArrayString, 0, Convert.ToInt32(fs.Length));
+                                fs.Dispose();
+
+                                var fileContent = new HttpBufferContent(fileByteArrayString.AsBuffer(), 0, Convert.ToUInt32(fileByteArrayString.Length));
+
+                                fileContent.Headers.Add("Content-Type", "application/octet-stream");
+
+                                formDataContent.Add(fileContent, fieldName, fileName);
+                            }
+
                         }
                     }
 
