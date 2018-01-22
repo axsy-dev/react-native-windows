@@ -343,6 +343,14 @@ var TextInput = React.createClass({
      * @platform android
      */
     underlineColorAndroid: PropTypes.string,
+    /**
+     * The start and end of the text input's selection. Set start and end to
+     * the same value to position the cursor.
+     */
+    selection: PropTypes.shape({
+      start: PropTypes.number.isRequired,
+      end: PropTypes.number,
+    }),
   },
 
   /**
@@ -653,6 +661,7 @@ var TextInput = React.createClass({
           selectionColor={this.props.selectionColor}
           text={this._getText()}
           editable={this.props.editable}
+          selection={this.props.selection}
         />;
     } else {
       textContainer =
@@ -678,6 +687,7 @@ var TextInput = React.createClass({
           selectionColor={this.props.selectionColor}
           text={this._getText()}
           editable={this.props.editable}
+          selection={this.props.selection}
         />;
     }
 
