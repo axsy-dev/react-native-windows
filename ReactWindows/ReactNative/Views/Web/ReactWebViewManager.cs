@@ -3,6 +3,7 @@ using ReactNative.UIManager;
 using ReactNative.UIManager.Annotations;
 using ReactNative.Views.Web.Events;
 using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using Windows.UI.Xaml.Controls;
 using Windows.Web;
@@ -23,6 +24,19 @@ namespace ReactNative.Views.Web
         private const int CommandReload = 3;
 
         private readonly Dictionary<int, string> _injectedJS = new Dictionary<int, string>();
+        private const string BridgeName = "__REACT_WEB_VIEW_BRIDGE";
+
+        private readonly ConcurrentDictionary<WebView, WebViewData> _webViewData = new ConcurrentDictionary<WebView, WebViewData>();
+        private readonly ReactContext _context;
+
+        /// <summary>
+        /// Instantiates the <see cref="ReactWebViewManager"/>.
+        /// </summary>
+        /// <param name="context">The React context.</param>
+        public ReactWebViewManager(ReactContext context)
+        {
+            _context = context;
+        }
 
         /// <summary>
         /// The name of the view manager.
@@ -92,6 +106,112 @@ namespace ReactNative.Views.Web
         [ReactProp("source")]
         public void SetSource(WebView view, JObject source)
         {
+            var webViewData = GetWebViewData(view);
+            webViewData.Source = source;
+            webViewData.SourceUpdated = true;
+        }
+
+        /// <summary>
+        /// Receive events/commands directly from JavaScript through the 
+        /// <see cref="UIManagerModule"/>.
+        /// </summary>
+        /// <param name="view">
+        /// The view instance that should receive the command.
+        /// </param>
+        /// <param name="commandId">Identifer for the command.</param>
+        /// <param name="args">Optional arguments for the command.</param>
+        public override void ReceiveCommand(WebView view, int commandId, JArray args)
+        {
+            switch (commandId)
+            {
+                case CommandGoBack:
+                    if (view.CanGoBack) view.GoBack();
+                    break;
+                case CommandGoForward:
+                    if (view.CanGoForward) view.GoForward();
+                    break;
+                case CommandReload:
+                    view.Refresh();
+                    break;
+                case CommandStopLoading:
+                    view.Stop();
+                    break;
+                case CommandPostMessage:
+                    PostMessage(view, args[0].Value<string>());
+                    break;
+                case CommandInjectJavaScript:
+                    InvokeScript(view, args[0].Value<string>());
+                    break;
+                default:
+                    throw new InvalidOperationException(
+                        Invariant($"Unsupported command '{commandId}' received by '{typeof(ReactWebViewManager)}'."));
+            }
+        }
+
+        /// <summary>
+        /// Called when view is detached from view hierarchy and allows for 
+        /// additional cleanup by the <see cref="ReactWebViewManager"/>.
+        /// </summary>
+        /// <param name="reactContext">The React context.</param>
+        /// <param name="view">The view.</param>
+        public override void OnDropViewInstance(ThemedReactContext reactContext, WebView view)
+        {
+            base.OnDropViewInstance(reactContext, view);
+            view.NavigationStarting -= OnNavigationStarting;
+            view.DOMContentLoaded -= OnDOMContentLoaded;
+            view.NavigationFailed -= OnNavigationFailed;
+            view.NavigationCompleted -= OnNavigationCompleted;
+
+            _webViewData.TryRemove(view, out _);
+        }
+
+        /// <summary>
+        /// Creates a new view instance of type <see cref="WebView"/>.
+        /// </summary>
+        /// <param name="reactContext">The React context.</param>
+        /// <returns>The view instance.</returns>
+        protected override WebView CreateViewInstance(ThemedReactContext reactContext)
+        {
+            var view = new WebView(WebViewExecutionMode.SeparateThread);
+            var data = new WebViewData();
+            _webViewData.AddOrUpdate(view, data, (k, v) => v);
+            return view;
+        }
+
+        /// <summary>
+        /// Subclasses can override this method to install custom event 
+        /// emitters on the given view.
+        /// </summary>
+        /// <param name="reactContext">The React context.</param>
+        /// <param name="view">The view instance.</param>
+        protected override void AddEventEmitters(ThemedReactContext reactContext, WebView view)
+        {
+            base.AddEventEmitters(reactContext, view);
+            view.NavigationStarting += OnNavigationStarting;
+            view.DOMContentLoaded += OnDOMContentLoaded;
+            view.NavigationFailed += OnNavigationFailed;
+            view.NavigationCompleted += OnNavigationCompleted;
+        }
+
+        /// <summary>
+        /// Callback that will be triggered after all properties are updated         
+        /// </summary>
+        /// <param name="view">The view instance.</param>
+        protected override void OnAfterUpdateTransaction(WebView view)
+        {
+            var webViewData = GetWebViewData(view);
+            if (webViewData.SourceUpdated)
+            {
+                NavigateToSource(view);
+                webViewData.SourceUpdated = false;
+            }
+        }
+
+        private void NavigateToSource(WebView view)
+        {
+            var webViewData = GetWebViewData(view);
+            var source = webViewData.Source;
+>>>>>>> f4734e79b... Hardened view managers for multi-window scenarios. (#1654)
             if (source != null)
             {
                 var html = source.Value<string>("html");
