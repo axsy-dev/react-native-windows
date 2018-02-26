@@ -367,7 +367,7 @@ namespace ReactNative.Views.Scroll
                 VerticalScrollMode = ScrollMode.Auto,
             };
 
-            _scrollViewerData.AddOrUpdate(scrollViewer, scrollViewerData, (k, v) => v);
+            _scrollViewerData.AddOrUpdate(scrollViewer, scrollViewerData, (k, v) => scrollViewerData);
 
             return scrollViewer;
         }

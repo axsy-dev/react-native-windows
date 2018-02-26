@@ -32,7 +32,8 @@ namespace ReactNative.UIManager
                 }
             }
 
-            s_settersCache.Add(type, settersImpl);
+            // Make sure it works on concurrent accesses that both created a value for same key
+            s_settersCache.AddOrUpdate(type, settersImpl, (key, value) => settersImpl);
             return settersImpl;
         }
 
@@ -62,7 +63,8 @@ namespace ReactNative.UIManager
                 }
             }
 
-            s_settersCache.Add(type, settersImpl);
+            // Make sure it works on concurrent accesses that both created a value for same key
+            s_settersCache.AddOrUpdate(type, settersImpl, (key, value) => settersImpl);
             return settersImpl;
         }
 

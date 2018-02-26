@@ -3,6 +3,7 @@ using ReactNative.Reflection;
 using ReactNative.Touch;
 using ReactNative.UIManager.Annotations;
 using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Diagnostics;
 using Windows.Foundation;
@@ -27,6 +28,9 @@ namespace ReactNative.UIManager
         where TFrameworkElement : FrameworkElement
         where TLayoutShadowNode : LayoutShadowNode
     {
+        private readonly ConcurrentDictionary<TFrameworkElement, DimensionBoundProperties> _dimensionBoundProperties =
+            new ConcurrentDictionary<TFrameworkElement, DimensionBoundProperties>();
+
         /// <summary>
         /// Set's the  <typeparamref name="TFrameworkElement"/> styling layout 
         /// properties, based on the <see cref="JObject"/> map.
@@ -169,6 +173,36 @@ namespace ReactNative.UIManager
         {
             view.PointerEntered -= OnPointerEntered;
             view.PointerExited -= OnPointerExited;
+            _dimensionBoundProperties.TryRemove(view, out _);
+        }
+
+        /// <summary>
+        /// Sets the dimensions of the view.
+        /// </summary>
+        /// <param name="view">The view.</param>
+        /// <param name="dimensions">The dimensions.</param>
+        public override void SetDimensions(TFrameworkElement view, Dimensions dimensions)
+        {
+            var dimensionBoundProperties = GetDimensionBoundProperties(view);
+            var matrixTransform = dimensionBoundProperties?.MatrixTransform;
+            var overflowHidden = dimensionBoundProperties?.OverflowHidden ?? false;
+            if (matrixTransform != null)
+            {
+                SetProjectionMatrix(view, dimensions, matrixTransform);
+            }
+
+            if (overflowHidden)
+            {
+                SetOverflowHidden(view, dimensions);
+                view.SizeChanged -= OnSizeChanged;
+            }
+
+            base.SetDimensions(view, dimensions);
+
+            if (overflowHidden)
+            {
+                view.SizeChanged += OnSizeChanged;
+            }
         }
 
         /// <summary>
@@ -202,7 +236,30 @@ namespace ReactNative.UIManager
             TouchHandler.OnPointerExited(view, e);
         }
 
-        private static void SetProjectionMatrix(TFrameworkElement view, JArray transforms)
+        private DimensionBoundProperties GetDimensionBoundProperties(TFrameworkElement view)
+        {
+            DimensionBoundProperties properties;
+            if (!_dimensionBoundProperties.TryGetValue(view, out properties))
+            {
+                properties = null;
+            }
+
+            return properties;
+        }
+
+        private DimensionBoundProperties GetOrCreateDimensionBoundProperties(TFrameworkElement view)
+        {
+            DimensionBoundProperties properties;
+            if (!_dimensionBoundProperties.TryGetValue(view, out properties))
+            {
+                properties = new DimensionBoundProperties();
+                _dimensionBoundProperties.AddOrUpdate(view, properties, (k, v) => properties);
+            }
+
+            return properties;
+        }
+
+        private static void SetProjectionMatrix(TFrameworkElement view, Dimensions dimensions, JArray transforms)
         {
             var transformMatrix = TransformHelper.ProcessTransform(transforms);
 
