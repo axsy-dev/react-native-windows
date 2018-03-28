@@ -72,6 +72,7 @@ var SplitViewWindows = createReactClass({
   displayName: 'SplitViewWindows',
   statics: {
     positions: SplitViewConsts.PanePositions,
+    displayModes: SplitViewConsts.DisplayModes
   },
 
   propTypes: {
@@ -121,6 +122,17 @@ var SplitViewWindows = createReactClass({
      * The pane view that will be rendered to the side of the screen and can be pulled in.
      */
     renderPaneView: PropTypes.func.isRequired,
+    /**
+     * Specify how the pane is shown in a SplitView.
+     *   - Overlay (the default) - The pane covers the content when it's open and does not take up space in the control layout. The pane closes when the user taps outside of it.
+     *   - Inline - The pane is shown side-by-side with the content and takes up space in the control layout. The pane does not close when the user taps outside of it.
+     */
+    displayMode: ReactPropTypes.oneOf([
+      SplitViewConsts.DisplayModes.CompactInline,
+      SplitViewConsts.DisplayModes.CompactOverlay,
+      SplitViewConsts.DisplayModes.Inline,
+      SplitViewConsts.DisplayModes.Overlay,
+    ])
   },
 
   mixins: [NativeMethodsMixin],
@@ -156,6 +168,7 @@ var SplitViewWindows = createReactClass({
         paneWidth={this.props.paneWidth}
         panePosition={this.props.panePosition}
         style={[styles.base, this.props.style]}
+        displayMode={this.props.displayMode}
         onPaneOpen={this._onPaneOpen}
         onPaneClose={this._onPaneClose}>
         {childrenWrapper}

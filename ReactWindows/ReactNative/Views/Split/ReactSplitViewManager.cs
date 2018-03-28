@@ -75,8 +75,35 @@ namespace ReactNative.Views.Split
                             { "Right", (int)SplitViewPanePlacement.Right },
                         }
                     },
+                    {
+                        "DisplayModes",
+                        new Dictionary<string, object>
+                        {
+                            {"CompactInline", (int)SplitViewDisplayMode.CompactInline},
+                            {"CompactOverlay", (int)SplitViewDisplayMode.CompactOverlay},
+                            {"Inline", (int)SplitViewDisplayMode.Inline},
+                            {"Overlay", (int)SplitViewDisplayMode.Overlay},
+                        }
+                    }
                 };
             }
+        }
+
+        [ReactProp("displayMode", DefaultInt32 = 0 /* SplitViewDisplayMode.Overlay */)]
+        public void SetDisplayMode(SplitView view, int displayMode)
+        {
+            var mode = (SplitViewDisplayMode)displayMode;
+            if (mode != SplitViewDisplayMode.CompactInline &&
+                mode != SplitViewDisplayMode.CompactOverlay &&
+                mode != SplitViewDisplayMode.Inline &&
+                mode != SplitViewDisplayMode.Overlay)
+            {
+                throw new ArgumentOutOfRangeException(
+                    nameof(displayMode),
+                    Invariant($"Unknown display mode '{displayMode}'."));
+            }
+
+            view.DisplayMode = mode;
         }
 
         [ReactProp("panePosition", DefaultInt32 = 0 /* SplitViewPanePlacement.Left */)]
@@ -210,10 +237,7 @@ namespace ReactNative.Views.Split
 
         protected override SplitView CreateViewInstance(ThemedReactContext reactContext)
         {
-            return new SplitView
-            {
-                DisplayMode = SplitViewDisplayMode.Overlay,
-            };
+            return new SplitView();
         }
 
         private void OnPaneClosed(SplitView sender, object args)
