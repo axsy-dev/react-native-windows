@@ -204,6 +204,11 @@
     </Page>
   </ItemGroup>
   <ItemGroup>
+    <SDKReference Include="WindowsMobile, Version=10.0.14393.0">
+      <Name>Windows Mobile Extensions for the UWP</Name>
+    </SDKReference>
+  </ItemGroup>
+  <ItemGroup>
     <ProjectReference Include="..\ChakraBridge\ChakraBridge.vcxproj">
       <Project>{4b72c796-16d5-4e3a-81c0-3e36f531e578}</Project>
       <Name>ChakraBridge</Name>
