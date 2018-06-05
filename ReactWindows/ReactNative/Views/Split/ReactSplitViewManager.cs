@@ -77,7 +77,7 @@ namespace ReactNative.Views.Split
                     },
                     {
                         "DisplayModes",
-                        new Dictionary<string, object>
+                        new JObject
                         {
                             {"CompactInline", (int)SplitViewDisplayMode.CompactInline},
                             {"CompactOverlay", (int)SplitViewDisplayMode.CompactOverlay},

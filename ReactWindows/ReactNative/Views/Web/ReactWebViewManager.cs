@@ -254,7 +254,7 @@ namespace ReactNative.Views.Web
             webView.GetReactContext().GetNativeModule<UIManagerModule>()
                 .EventDispatcher
                 .DispatchEvent(
-                    new WebViewLoadingEvent(
+                    new WebViewLoadEvent(
                         webView.GetTag(),
                         "Start",
                         e.Uri.ToString(),
