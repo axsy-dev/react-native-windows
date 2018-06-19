@@ -127,7 +127,7 @@ var SplitViewWindows = createReactClass({
      *   - Overlay (the default) - The pane covers the content when it's open and does not take up space in the control layout. The pane closes when the user taps outside of it.
      *   - Inline - The pane is shown side-by-side with the content and takes up space in the control layout. The pane does not close when the user taps outside of it.
      */
-    displayMode: ReactPropTypes.oneOf([
+    displayMode: PropTypes.oneOf([
       SplitViewConsts.DisplayModes.CompactInline,
       SplitViewConsts.DisplayModes.CompactOverlay,
       SplitViewConsts.DisplayModes.Inline,
