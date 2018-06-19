@@ -222,15 +222,27 @@ namespace ReactNative.Views.TextInput
         [ReactProp("selection")]
         public void SetSelection(ReactTextBox view, JObject selection)
         {
-            var start = selection.Value<int>("start");
-            var textLength = view.Text?.Length ?? 0;
-            var normalizedStart = Math.Min(start, textLength);
-            var end = selection.Value<int>("end");
-            var selectionLength = end - start;
-            var normalizedSelectionLength = Math.Max(selectionLength, 0);
-            var maxLength = textLength - normalizedStart;
-            view.SelectionStart = normalizedStart;
-            view.SelectionLength = Math.Min(normalizedSelectionLength, maxLength);
+            if (selection != null)
+            {
+                var start = selection.Value<int>("start");
+                var end = selection.Value<int>("end");
+                var textLength = view.Text?.Length ?? 0;
+
+                // Text is about to be inserted
+                if (start > textLength)
+                {
+                    view.SelectionStart = start;
+                }
+                else
+                {
+                    var normalizedStart = Math.Min(start, textLength);
+                    var selectionLength = end - start;
+                    var normalizedSelectionLength = Math.Max(selectionLength, 0);
+                    var maxLength = textLength - normalizedStart;
+                    view.SelectionStart = normalizedStart;
+                    view.SelectionLength = Math.Min(normalizedSelectionLength, maxLength);
+                }
+            }
         }
 
         /// <summary>
