@@ -256,8 +256,8 @@ namespace ReactNative.Views.Web
                 .DispatchEvent(
                     new WebViewLoadEvent(
                         webView.GetTag(),
-                        "Start",
-                        e.Uri.ToString(),
+                        WebViewLoadEvent.TopLoadingStart,
+                        e.Uri?.ToString(),
                         true,
                         webView.DocumentTitle,
                         webView.CanGoBack,
