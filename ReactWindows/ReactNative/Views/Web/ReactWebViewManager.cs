@@ -244,6 +244,24 @@ namespace ReactNative.Views.Web
             view.DOMContentLoaded += OnDOMContentLoaded;
             view.NavigationFailed += OnNavigationFailed;
             view.NavigationCompleted += OnNavigationCompleted;
+            view.UnsupportedUriSchemeIdentified += OnUnsupportedUriSchemeIdentified;
+        }
+
+        private void OnUnsupportedUriSchemeIdentified(object sender, WebViewUnsupportedUriSchemeIdentifiedEventArgs e)
+        {
+            var webView = (WebView)sender;
+            webView.GetReactContext().GetNativeModule<UIManagerModule>()
+                .EventDispatcher
+                .DispatchEvent(
+                    new WebViewLoadEvent(
+                        webView.GetTag(),
+                        "Start",
+                        e.Uri.ToString(),
+                        true,
+                        webView.DocumentTitle,
+                        webView.CanGoBack,
+                        webView.CanGoForward));
+            e.Handled = true;
         }
 
         /// <summary>
