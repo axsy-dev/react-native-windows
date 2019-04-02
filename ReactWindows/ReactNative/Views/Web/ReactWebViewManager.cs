@@ -173,9 +173,9 @@ namespace ReactNative.Views.Web
         /// <param name="view">A webview instance.</param>
         /// <param name="originWhitelist">A list of allowed URI schemes.</param>
         [ReactProp("originWhitelist")]
-        public void SetOriginWhitelist(WebView view, JObject originWhitelist)
+        public void SetOriginWhitelist(WebView view, JArray originWhitelist)
         {
-            OriginWhitelist = originWhitelist;
+            OriginWhitelist = originWhitelist.ToObject<IList<string>>();
         }
 
         /// <summary>
