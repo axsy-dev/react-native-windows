@@ -11,6 +11,7 @@ using ReactNative.UIManager.Annotations;
 using ReactNative.Views.Web.Events;
 using ReactNativeWebViewBridge;
 using System;
+using System.Collections.Generic;
 using Windows.UI.Xaml.Controls;
 using Windows.Web.Http;
 using static System.FormattableString;
@@ -36,7 +37,7 @@ namespace ReactNative.Views.Web
         private readonly ViewKeyedDictionary<WebView, WebViewData> _webViewData = new ViewKeyedDictionary<WebView, WebViewData>();
         private readonly ReactContext _context;
 
-        private List<string> OriginWhitelist;
+        private IList<string> OriginWhitelist;
 
         /// <summary>
         /// Instantiates the <see cref="ReactWebViewManager"/>.
