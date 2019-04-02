@@ -328,6 +328,7 @@ class WebView extends React.Component {
         mixedContentMode={this.props.mixedContentMode}
         saveFormDataDisabled={this.props.saveFormDataDisabled}
         urlPrefixesForDefaultIntent={this.props.urlPrefixesForDefaultIntent}
+        originWhitelist={this.props.originWhitelist}
         {...nativeConfig.props}
       />;
 
