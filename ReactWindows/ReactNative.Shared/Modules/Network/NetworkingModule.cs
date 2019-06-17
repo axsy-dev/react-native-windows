@@ -19,6 +19,7 @@ using Windows.Storage;
 using Windows.Web.Http;
 using Windows.Web.Http.Filters;
 using Windows.Web.Http.Headers;
+using System.Runtime.InteropServices.WindowsRuntime;
 #else
 using PCLStorage;
 using System.Linq;
@@ -178,36 +179,55 @@ namespace ReactNative.Modules.Network
                         {
                             formDataContent.Add(new HttpStringContent(stringContent), fieldName);
                         }
-                    }
-
-                    request.Content = formDataContent;
-                }
-            }
-
-            _tasks.AddAndInvokeAsync(requestId, async token =>
-            {
-                using (request)
-                {
-                    try
-                    {
-                        await ProcessRequestAsync(
-                            requestId,
-                            useIncrementalUpdates,
-                            timeout,
-                            request,
-                            responseType,
-                            token);
-                    }
-                    finally
-                    {
-                        var content = request.Content;
-                        if (content != null)
+                        else
                         {
-                            content.Dispose();
+                            var fileUri = content.Value<string>("uri");
+                            var fileName = content.Value<string>("name");
+                            var fileType = content.Value<string>("type");
+
+                            if (fileUri != null && fileName != null)
+                            {
+                                FileStream fs = File.OpenRead(fileUri);
+                                byte[] fileByteArrayString = new byte[fs.Length];
+                                fs.Read(fileByteArrayString, 0, Convert.ToInt32(fs.Length));
+                                fs.Dispose();
+
+                                var fileContent = new HttpBufferContent(fileByteArrayString.AsBuffer(), 0, Convert.ToUInt32(fileByteArrayString.Length));
+
+                                fileContent.Headers.Add("Content-Type", "application/octet-stream");
+
+                                formDataContent.Add(fileContent, fieldName, fileName);
+                            }
                         }
                     }
+                    request.Content = formDataContent;
                 }
-            });
+
+                _tasks.AddAndInvokeAsync(requestId, async token =>
+                {
+                    using (request)
+                    {
+                        try
+                        {
+                            await ProcessRequestAsync(
+                                requestId,
+                                useIncrementalUpdates,
+                                timeout,
+                                request,
+                                responseType,
+                                token);
+                        }
+                        finally
+                        {
+                            var content = request.Content;
+                            if (content != null)
+                            {
+                                content.Dispose();
+                            }
+                        }
+                    }
+                });
+            }
         }
 
         /// <summary>
@@ -263,7 +283,7 @@ namespace ReactNative.Modules.Network
                     responseType,
                     token).ConfigureAwait(false);
             }
-            catch(Exception ex)
+            catch (Exception ex)
             {
                 if (_shuttingDown)
                 {
@@ -403,7 +423,7 @@ namespace ReactNative.Modules.Network
 #if WINDOWS_UWP
             var responseHeaders = response.Headers;
 #else
-            var responseHeaders = response.Headers.Select(pair => 
+            var responseHeaders = response.Headers.Select(pair =>
                 new KeyValuePair<string, string>(pair.Key, string.Join(", ", pair.Value)));
 #endif
             TranslateHeaders(headerData, responseHeaders);
@@ -413,7 +433,7 @@ namespace ReactNative.Modules.Network
 #if WINDOWS_UWP
                 var responseContentHeaders = response.Content.Headers;
 #else
-                var responseContentHeaders = response.Content.Headers.Select(pair => 
+                var responseContentHeaders = response.Content.Headers.Select(pair =>
                     new KeyValuePair<string, string>(pair.Key, string.Join(", ", pair.Value)));
 #endif
                 TranslateHeaders(headerData, responseContentHeaders);
@@ -496,7 +516,7 @@ namespace ReactNative.Modules.Network
                         {
                             request.Headers.Add(key, header[1]);
                         }
-                        
+
                         break;
 #endif
                     case "content-encoding":
