@@ -11,6 +11,7 @@ using ReactNative.UIManager.Annotations;
 using ReactNative.Views.Web.Events;
 using ReactNativeWebViewBridge;
 using System;
+using System.Collections.Generic;
 using Windows.UI.Xaml.Controls;
 using Windows.Web.Http;
 using static System.FormattableString;
@@ -35,6 +36,8 @@ namespace ReactNative.Views.Web
 
         private readonly ViewKeyedDictionary<WebView, WebViewData> _webViewData = new ViewKeyedDictionary<WebView, WebViewData>();
         private readonly ReactContext _context;
+
+        private IList<string> OriginWhitelist;
 
         /// <summary>
         /// Instantiates the <see cref="ReactWebViewManager"/>.
@@ -164,6 +167,17 @@ namespace ReactNative.Views.Web
             webViewData.SourceUpdated = true;
         }
 
+                /// <summary>
+        /// Sets an originWhitelist for the WebView.
+        /// </summary>
+        /// <param name="view">A webview instance.</param>
+        /// <param name="originWhitelist">A list of allowed URI schemes.</param>
+        [ReactProp("originWhitelist")]
+        public void SetOriginWhitelist(WebView view, JArray originWhitelist)
+        {
+            OriginWhitelist = originWhitelist.ToObject<IList<string>>();
+        }
+
         /// <summary>
         /// Receive events/commands directly from JavaScript through the 
         /// <see cref="UIManagerModule"/>.
@@ -214,6 +228,7 @@ namespace ReactNative.Views.Web
             view.DOMContentLoaded -= OnDOMContentLoaded;
             view.NavigationFailed -= OnNavigationFailed;
             view.NavigationCompleted -= OnNavigationCompleted;
+            view.UnsupportedUriSchemeIdentified -= OnUnsupportedUriSchemeIdentified;
 
             _webViewData.Remove(view);
         }
@@ -244,6 +259,29 @@ namespace ReactNative.Views.Web
             view.DOMContentLoaded += OnDOMContentLoaded;
             view.NavigationFailed += OnNavigationFailed;
             view.NavigationCompleted += OnNavigationCompleted;
+            view.UnsupportedUriSchemeIdentified += OnUnsupportedUriSchemeIdentified;
+        }
+
+        private void OnUnsupportedUriSchemeIdentified(object sender, WebViewUnsupportedUriSchemeIdentifiedEventArgs e)
+        {
+            // * is used to match all URI schemes.
+            if (OriginWhitelist.Contains("*") || OriginWhitelist.Contains(e.Uri.Scheme)) {
+                var webView = (WebView)sender;
+                webView.GetReactContext().GetNativeModule<UIManagerModule>()
+                    .EventDispatcher
+                    .DispatchEvent(
+                        new WebViewLoadEvent(
+                            webView.GetTag(),
+                            WebViewLoadEvent.TopLoadingStart,
+                            e.Uri?.OriginalString,
+                            true,
+                            webView.DocumentTitle,
+                            webView.CanGoBack,
+                            webView.CanGoForward));
+                e.Handled = true;
+            } else {
+                e.Handled = false;
+            }
         }
 
         /// <summary>
