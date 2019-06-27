@@ -8,9 +8,11 @@ using Newtonsoft.Json.Linq;
 using ReactNative.Bridge;
 using ReactNative.UIManager;
 using ReactNative.UIManager.Annotations;
+using ReactNative.UIManager.Events;
 using ReactNative.Views.Web.Events;
 using ReactNativeWebViewBridge;
 using System;
+using System.Diagnostics;
 using System.Collections.Generic;
 using Windows.UI.Xaml.Controls;
 using Windows.Web.Http;
@@ -301,6 +303,16 @@ namespace ReactNative.Views.Web
             }
         }
 
+        private void DispatchNavigateError(WebView view, String error)
+        {
+            view
+                .GetReactContext()
+                .GetNativeModule<UIManagerModule>()
+                .EventDispatcher.DispatchEvent(
+                    new WebViewNavigateError(view.GetTag(), error)
+                );
+        }
+
         private void NavigateToSource(WebView view)
         {
             var webViewData = GetWebViewData(view);
@@ -373,7 +385,16 @@ namespace ReactNative.Views.Web
                             request.Content = new HttpStringContent(body);
                         }
 
-                        view.NavigateWithHttpRequestMessage(request);
+                        try
+                        {
+                            view.NavigateWithHttpRequestMessage(request);
+                        }
+                        catch (Exception)
+                        {
+                            var message = "Error NavigateWithHttpRequestMessage";
+                            Debug.WriteLine(message);
+                            DispatchNavigateError(view, message);
+                        }
                         return;
                     }
                 }
@@ -501,6 +522,50 @@ namespace ReactNative.Views.Web
             public bool SourceUpdated { get; set; }
 
             public string InjectedJavaScript { get; set; }
+        }
+
+        private class WebViewNavigateError : Event
+        {
+            public static string EVENT_NAME = "WebViewNavigateError";
+            private readonly string _message;
+
+            public WebViewNavigateError(int viewTag, string message) : base(viewTag)
+            {
+                _message = message;
+            }
+
+            public override string EventName
+            {
+                get => "WebViewNavigateError";
+            }
+
+            public override void Dispatch(RCTEventEmitter eventEmitter)
+            {
+                var eventData = new JObject
+                {
+                    { "target", ViewTag },
+                    { "message", _message }
+                };
+                eventEmitter.receiveEvent(ViewTag, EventName, eventData);
+            }
+        }
+
+        public override JObject CustomDirectEventTypeConstants
+        {
+            get
+            {
+                return new JObject
+                {
+                    {
+                        WebViewNavigateError.EVENT_NAME,
+                        new JObject
+                        {
+                            {"registrationName", "onNavigateError"}
+                        }
+                    }
+
+                };
+            }
         }
     }
 }
