@@ -238,7 +238,8 @@ class WebView extends React.Component {
     javaScriptEnabled: true,
     thirdPartyCookiesEnabled: true,
     scalesPageToFit: true,
-    saveFormDataDisabled: false
+    saveFormDataDisabled: false,
+    onNavigateError: () => {}
   };
 
   state = {
@@ -335,6 +336,9 @@ class WebView extends React.Component {
         saveFormDataDisabled={this.props.saveFormDataDisabled}
         urlPrefixesForDefaultIntent={this.props.urlPrefixesForDefaultIntent}
         originWhitelist={this.props.originWhitelist}
+        onNavigateError={e => {
+          this.props.onNavigateError();
+        }}
         {...nativeConfig.props}
       />
     );
