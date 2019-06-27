@@ -167,7 +167,7 @@ namespace ReactNative.Views.Web
             webViewData.SourceUpdated = true;
         }
 
-                /// <summary>
+        /// <summary>
         /// Sets an originWhitelist for the WebView.
         /// </summary>
         /// <param name="view">A webview instance.</param>
@@ -179,7 +179,7 @@ namespace ReactNative.Views.Web
         }
 
         /// <summary>
-        /// Receive events/commands directly from JavaScript through the 
+        /// Receive events/commands directly from JavaScript through the
         /// <see cref="UIManagerModule"/>.
         /// </summary>
         /// <param name="view">
@@ -216,7 +216,7 @@ namespace ReactNative.Views.Web
         }
 
         /// <summary>
-        /// Called when view is detached from view hierarchy and allows for 
+        /// Called when view is detached from view hierarchy and allows for
         /// additional cleanup by the <see cref="ReactWebViewManager"/>.
         /// </summary>
         /// <param name="reactContext">The React context.</param>
@@ -247,7 +247,7 @@ namespace ReactNative.Views.Web
         }
 
         /// <summary>
-        /// Subclasses can override this method to install custom event 
+        /// Subclasses can override this method to install custom event
         /// emitters on the given view.
         /// </summary>
         /// <param name="reactContext">The React context.</param>
@@ -265,7 +265,8 @@ namespace ReactNative.Views.Web
         private void OnUnsupportedUriSchemeIdentified(object sender, WebViewUnsupportedUriSchemeIdentifiedEventArgs e)
         {
             // * is used to match all URI schemes.
-            if (OriginWhitelist.Contains("*") || OriginWhitelist.Contains(e.Uri.Scheme)) {
+            if (OriginWhitelist.Contains("*") || OriginWhitelist.Contains(e.Uri.Scheme))
+            {
                 var webView = (WebView)sender;
                 webView.GetReactContext().GetNativeModule<UIManagerModule>()
                     .EventDispatcher
@@ -279,13 +280,15 @@ namespace ReactNative.Views.Web
                             webView.CanGoBack,
                             webView.CanGoForward));
                 e.Handled = true;
-            } else {
+            }
+            else
+            {
                 e.Handled = false;
             }
         }
 
         /// <summary>
-        /// Callback that will be triggered after all props are updated         
+        /// Callback that will be triggered after all props are updated
         /// </summary>
         /// <param name="view">The view instance.</param>
         protected override void OnAfterUpdateTransaction(WebView view)
